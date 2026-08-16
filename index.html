@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Montana Broker Statement Adjustment Worksheet</title>
+<meta name="description" content="Step-by-step calculator for Montana interest and dividend adjustments from a consolidated 1099.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="letterhead">
+  <div class="letterhead-title">
+    <p class="eyebrow">Montana individual income tax &middot; preparer worksheet</p>
+    <h1>Broker Statement Adjustment Worksheet</h1>
+    <p class="subtitle">Step-by-step help for Montana interest &amp; dividend adjustments from a consolidated 1099</p>
+  </div>
+  <div class="letterhead-fields">
+    <label>Client name <input id="clientName" type="text" placeholder="—"></label>
+    <label>Tax year <input id="taxYear" type="text" placeholder="—" inputmode="numeric"></label>
+    <label>Preparer <input id="preparer" type="text" placeholder="—"></label>
+    <label>Date <input id="date" type="date"></label>
+  </div>
+</header>
+
+<div class="app">
+
+  <nav class="stepper" aria-label="Worksheet steps">
+    <button class="step-btn" data-panel="start"><span class="step-tag">&mdash;</span><span class="step-label">Start Here</span></button>
+    <button class="step-btn" data-panel="step1"><span class="step-tag">BOX&nbsp;3</span><span class="step-label">Savings Bond Interest</span></button>
+    <button class="step-btn" data-panel="step2"><span class="step-tag">BOX&nbsp;8</span><span class="step-label">Tax-Exempt Interest</span></button>
+    <button class="step-btn" data-panel="step3"><span class="step-tag">1a</span><span class="step-label">Dividends &amp; US Interest</span></button>
+    <button class="step-btn" data-panel="step4"><span class="step-tag">BOX&nbsp;12</span><span class="step-label">Exempt-Interest Dividends</span></button>
+    <button class="step-btn" data-panel="summary"><span class="step-tag">&Sigma;</span><span class="step-label">Summary</span></button>
+  </nav>
+
+  <main class="panels">
+
+    <!-- START -->
+    <section id="panel-start" class="panel">
+      <p class="kicker">Before you begin</p>
+      <h2>Why this matters</h2>
+      <p class="lede">Montana taxes some interest and dividend income differently than the federal return does. TaxSlayer starts with the federal treatment, so for four common situations you need to make a manual Montana adjustment. This tool walks you through each one &mdash; use only the steps that apply to your client's statement.</p>
+
+      <h3>Look at the client's consolidated 1099 and answer these four questions</h3>
+      <div class="question-grid">
+        <button class="question-card" data-jump="step1">
+          <span class="q-num">1</span>
+          <span class="q-body">Is there an amount in <strong>1099&#8209;INT Box&nbsp;3</strong> (Interest on U.S. Savings Bonds &amp; Treasury Obligations)?</span>
+          <span class="q-tag tag-subtract">Go to Step 1 &middot; Subtraction</span>
+        </button>
+        <button class="question-card" data-jump="step2">
+          <span class="q-num">2</span>
+          <span class="q-body">Is there an amount in <strong>1099&#8209;INT Box&nbsp;8</strong> (Tax-Exempt Interest)?</span>
+          <span class="q-tag tag-addition">Go to Step 2 &middot; Possible addition</span>
+        </button>
+        <button class="question-card" data-jump="step3">
+          <span class="q-num">3</span>
+          <span class="q-body">Does <strong>1099&#8209;DIV Box&nbsp;1a</strong> (Ordinary Dividends) include U.S. Treasury interest? Check the broker's supplemental pages.</span>
+          <span class="q-tag tag-subtract">Go to Step 3 &middot; Subtraction</span>
+        </button>
+        <button class="question-card" data-jump="step4">
+          <span class="q-num">4</span>
+          <span class="q-body">Is there an amount in <strong>1099&#8209;DIV Box&nbsp;12</strong> (Exempt-Interest Dividends)?</span>
+          <span class="q-tag tag-addition">Go to Step 4 &middot; Possible addition</span>
+        </button>
+      </div>
+
+      <p class="note">If you answered &ldquo;no&rdquo; to all four questions, no Montana adjustment is needed for this statement. Otherwise, work through each step that applies, in order. When you're done, the Summary tab collects everything you'll need to enter into TaxSlayer.</p>
+      <p class="note note-muted">Tip: after finishing a client's worksheet, open the Summary tab and use <strong>Print summary</strong> &mdash; include the printout with your files for Quality Review.</p>
+    </section>
+
+    <!-- STEP 1 -->
+    <section id="panel-step1" class="panel">
+      <p class="kicker">1099-INT &middot; Box 3 &middot; applies only if Box 3 has an amount</p>
+      <h2>Interest on U.S. Savings Bonds &amp; Treasury Obligations</h2>
+      <p class="tax-tip">Interest on U.S. Savings Bonds and Treasury obligations is federally taxable but is <strong>not</strong> taxable to Montana. TaxSlayer treats it the same as federal unless you subtract it yourself, so this entire amount is a straight Montana subtraction &mdash; no fund-by-fund breakdown needed.</p>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Amount in Box 3 of the 1099-INT</span>
+          <span class="hint">Type the dollar amount exactly as shown on the statement.</span>
+          <span class="money-input"><span class="prefix">$</span><input id="s1-box3" type="number" step="0.01" min="0" inputmode="decimal"></span>
+        </label>
+      </div>
+
+      <div class="result-block result-subtract">
+        <span class="result-label">Montana subtraction amount</span>
+        <span class="result-value" id="s1-result">$0.00</span>
+      </div>
+
+      <details class="taxslayer-path">
+        <summary>Where this goes in TaxSlayer</summary>
+        <p>Federal Section &rarr; Income &rarr; Interest and Dividends &rarr; Interest or Dividend Income &rarr; Add Interest and Dividends &rarr; Interest Income, Form 1099-INT. Enter the federal amount as shown on the statement, then scroll down to &ldquo;Amount of Interest on U.S. Savings Bonds and Treasury Obligations you want subtracted from your state return&rdquo; and enter the amount above. Confirm the state selected is Montana.</p>
+      </details>
+    </section>
+
+    <!-- STEP 2 -->
+    <section id="panel-step2" class="panel">
+      <p class="kicker">1099-INT &middot; Box 8 &middot; applies only if Box 8 has an amount</p>
+      <h2>Tax-Exempt Interest</h2>
+      <p class="tax-tip">Tax-exempt interest is generally interest from municipal bonds and U.S. territories. Interest from <strong>Montana</strong> (and U.S. territory) bonds stays exempt for Montana. Interest from <strong>non-Montana</strong> municipal bonds is taxable to Montana, even though it's exempt federally &mdash; that non-Montana portion is what you need to add back. Find the fund-by-fund state breakdown in the broker statement's supplemental pages.</p>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Total Tax-Exempt Interest, Box 8 of the 1099-INT</span>
+          <span class="hint">This is the reference total &mdash; it should match the sum of the table below.</span>
+          <span class="money-input"><span class="prefix">$</span><input id="s2-ref" type="number" step="0.01" min="0" inputmode="decimal"></span>
+        </label>
+      </div>
+
+      <p class="note note-muted">Enter one line per fund. Use either a Montana % <em>or</em> a direct Montana $ amount &mdash; not both.</p>
+
+      <div class="table-wrap">
+        <table class="fund-table" id="s2-table">
+          <thead>
+            <tr>
+              <th class="col-fund">Fund name</th>
+              <th class="col-money">Total tax-exempt interest ($)</th>
+              <th class="col-pct">% from Montana</th>
+              <th class="col-money">OR: $ from Montana (direct)</th>
+              <th class="col-money col-calc">Montana $ (calculated)</th>
+              <th class="col-remove"></th>
+            </tr>
+          </thead>
+          <tbody id="s2-rows"></tbody>
+          <tfoot>
+            <tr>
+              <td class="total-label">Total</td>
+              <td class="col-money" id="s2-total-b">$0.00</td>
+              <td></td><td></td>
+              <td class="col-money col-calc" id="s2-total-e">$0.00</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <button class="add-row-btn" id="s2-add-row" type="button">+ Add fund</button>
+
+      <p class="check-msg" id="s2-check"></p>
+
+      <div class="result-block result-addition">
+        <span class="result-label">Montana addition amount (non-Montana portion)</span>
+        <span class="result-value" id="s2-result">$0.00</span>
+      </div>
+
+      <details class="taxslayer-path">
+        <summary>Where this goes in TaxSlayer</summary>
+        <p>Enter the full Box 8 amount federally as shown on the statement (Federal Section &rarr; Income &rarr; Interest and Dividends &rarr; Add Interest and Dividends &rarr; Interest Income, Form 1099-INT). Then under the state return, find &ldquo;Taxable State Interest&rdquo; and click &ldquo;Add Interest Items.&rdquo; Choose Montana as the state and enter the addition amount above as a new taxable state interest item.</p>
+      </details>
+    </section>
+
+    <!-- STEP 3 -->
+    <section id="panel-step3" class="panel">
+      <p class="kicker">1099-DIV &middot; Box 1a &middot; applies only if ordinary dividends include U.S. government interest</p>
+      <h2>Dividends That Include U.S. Treasury Interest</h2>
+      <p class="tax-tip">Interest on U.S. Savings Bonds and Treasury obligations is not taxable to Montana &mdash; including when it's passed through as part of a fund's ordinary dividend (Box 1a). Some broker statements show this as a dollar amount per fund; others show it as a percentage of the fund's dividend distributions (excluding any capital gain distributions). This table handles either.</p>
+
+      <div class="table-wrap">
+        <table class="fund-table" id="s3-table">
+          <thead>
+            <tr>
+              <th class="col-fund">Fund name</th>
+              <th class="col-money">Total distribution ($)</th>
+              <th class="col-money">Capital gain distributions to subtract ($)</th>
+              <th class="col-money col-calc">Dividend distributions (calculated)</th>
+              <th class="col-pct">% U.S. Treasury interest</th>
+              <th class="col-money">OR: $ U.S. interest (direct)</th>
+              <th class="col-money col-calc">U.S. interest $ (calculated)</th>
+              <th class="col-remove"></th>
+            </tr>
+          </thead>
+          <tbody id="s3-rows"></tbody>
+          <tfoot>
+            <tr>
+              <td class="total-label">Total</td>
+              <td class="col-money" id="s3-total-b">$0.00</td>
+              <td class="col-money" id="s3-total-c">$0.00</td>
+              <td class="col-money col-calc" id="s3-total-d">$0.00</td>
+              <td></td><td></td>
+              <td class="col-money col-calc" id="s3-total-g">$0.00</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <button class="add-row-btn" id="s3-add-row" type="button">+ Add fund</button>
+
+      <div class="result-block result-subtract">
+        <span class="result-label">Montana subtraction amount</span>
+        <span class="result-value" id="s3-result">$0.00</span>
+      </div>
+
+      <details class="taxslayer-path">
+        <summary>Where this goes in TaxSlayer</summary>
+        <p>Federal Section &rarr; Income &rarr; Interest and Dividends &rarr; Add Interest and Dividends &rarr; Dividend Income, Form 1099-DIV. Enter the federal amount as shown on the statement, then scroll to &ldquo;Amount of Interest on U.S. Savings Bonds and Treasury Obligations you want subtracted from your state return&rdquo; and enter the amount above. Confirm the state selected is Montana.</p>
+      </details>
+    </section>
+
+    <!-- STEP 4 -->
+    <section id="panel-step4" class="panel">
+      <p class="kicker">1099-DIV &middot; Box 12 &middot; applies only if Box 12 has an amount</p>
+      <h2>Exempt-Interest Dividends</h2>
+      <p class="tax-tip">Exempt-interest dividends generally come from municipal bonds and U.S. territories. Dividends from <strong>Montana</strong> (and U.S. territory) bonds stay exempt for Montana. Dividends from <strong>non-Montana</strong> municipal bonds are taxable to Montana, even though they're exempt federally &mdash; that non-Montana portion is what you need to add back. Find the fund-by-fund state breakdown in the broker statement's supplemental pages.</p>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Total Exempt-Interest Dividends, Box 12 of the 1099-DIV</span>
+          <span class="hint">This is the reference total for the whole statement.</span>
+          <span class="money-input"><span class="prefix">$</span><input id="s4-ref" type="number" step="0.01" min="0" inputmode="decimal"></span>
+        </label>
+      </div>
+
+      <div class="table-wrap">
+        <table class="fund-table" id="s4-table">
+          <thead>
+            <tr>
+              <th class="col-fund">Fund name</th>
+              <th class="col-money">Total distribution ($)</th>
+              <th class="col-money">Capital gain distributions to subtract ($)</th>
+              <th class="col-money col-calc">Dividend distributions (calculated)</th>
+              <th class="col-pct">% Montana exempt-interest dividends</th>
+              <th class="col-money">OR: $ from Montana (direct)</th>
+              <th class="col-money col-calc">Montana $ (calculated)</th>
+              <th class="col-remove"></th>
+            </tr>
+          </thead>
+          <tbody id="s4-rows"></tbody>
+          <tfoot>
+            <tr>
+              <td class="total-label">Total</td>
+              <td class="col-money" id="s4-total-b">$0.00</td>
+              <td class="col-money" id="s4-total-c">$0.00</td>
+              <td class="col-money col-calc" id="s4-total-d">$0.00</td>
+              <td></td><td></td>
+              <td class="col-money col-calc" id="s4-total-g">$0.00</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <button class="add-row-btn" id="s4-add-row" type="button">+ Add fund</button>
+
+      <p class="check-msg" id="s4-check"></p>
+
+      <div class="result-block result-addition">
+        <span class="result-label">Montana addition amount (non-Montana portion)</span>
+        <span class="result-value" id="s4-result">$0.00</span>
+      </div>
+
+      <details class="taxslayer-path">
+        <summary>Where this goes in TaxSlayer</summary>
+        <p>Enter the full Box 12 amount federally as shown on the statement (Federal Section &rarr; Income &rarr; Interest and Dividends &rarr; Add Interest and Dividends &rarr; Dividend Income, Form 1099-DIV). Then under the state return, find &ldquo;Taxable State Dividend&rdquo; and click &ldquo;Edit Dividend Items.&rdquo; Choose Montana as the state and enter the addition amount above as a new taxable state dividend item.</p>
+      </details>
+    </section>
+
+    <!-- SUMMARY -->
+    <section id="panel-summary" class="panel">
+      <p class="kicker">Everything to enter, pulled from the steps you completed</p>
+      <h2>Summary &mdash; TaxSlayer Entries</h2>
+      <p class="lede" id="summary-client">Client: &mdash;</p>
+
+      <div class="table-wrap">
+        <table class="summary-table">
+          <thead>
+            <tr><th>Adjustment</th><th>Amount</th><th>Enter as</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Box 3 &mdash; Savings Bond Interest</td>
+              <td class="col-money" id="sum-box3">$0.00</td>
+              <td><span class="pill pill-subtract">Subtraction</span> State Interest section</td>
+            </tr>
+            <tr>
+              <td>Box 8 &mdash; Tax-Exempt Interest, non-Montana portion</td>
+              <td class="col-money" id="sum-box8">$0.00</td>
+              <td><span class="pill pill-addition">Addition</span> Taxable State Interest Item, State = Montana</td>
+            </tr>
+            <tr>
+              <td>Dividends &mdash; U.S. Treasury Interest (Box 1a)</td>
+              <td class="col-money" id="sum-div1a">$0.00</td>
+              <td><span class="pill pill-subtract">Subtraction</span> State Dividend section</td>
+            </tr>
+            <tr>
+              <td>Box 12 &mdash; Exempt-Interest Dividends, non-Montana portion</td>
+              <td class="col-money" id="sum-box12">$0.00</td>
+              <td><span class="pill pill-addition">Addition</span> Taxable State Dividend Item, State = Montana</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="note note-muted">A $0.00 line above means that step wasn't used (either the box was empty, or you skipped that step because it didn't apply to this client) &mdash; no entry is needed for it in TaxSlayer.</p>
+
+      <div class="summary-actions">
+        <button id="printBtn" type="button">Print summary</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="app-footer">
+  <div class="footer-actions">
+    <button id="saveBtn" type="button">Save to this browser</button>
+    <button id="loadBtn" type="button">Load saved</button>
+    <button id="exportBtn" type="button">Export file</button>
+    <button id="importBtn" type="button">Import file</button>
+    <input type="file" id="importFile" accept="application/json" hidden>
+    <button id="resetBtn" type="button" class="danger">New worksheet</button>
+  </div>
+  <span class="save-status" id="saveStatus" role="status" aria-live="polite"></span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
