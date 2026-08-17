@@ -61,6 +61,13 @@ Each calculation mirrors a named cell in the original spreadsheet, so you can sa
 - **Add a row by default**: change `blankRow2()` / `blankRow3()` calls in `defaultState()` in `app.js`.
 - **Rename for another state**: the Montana-specific logic (MT bond exemption, non-MT addback) is specific to how Montana treats municipal bond interest — check your state's rule before reusing this for somewhere else.
 
+## Keyboard navigation in the fund tables
+
+- **Tab / Shift+Tab** — move between cells in browser default order (unchanged, works everywhere).
+- **Up / Down** — move to the same column in the row above/below. Overrides the browser's native number-input spinner, since accidentally bumping a dollar value while navigating was worse than losing the spinner.
+- **Left / Right** — jump cells too, but only in the Fund name column, and only when the cursor is already at the very start/end of the text. Numeric cells keep native Left/Right for editing digits (number inputs can't reliably report cursor position across browsers, so this is the safe choice there — use Tab to move across them instead).
+- **Enter** — moves down a row; Shift+Enter moves up. Pressing Enter on the last row adds a new fund row and drops you straight into it.
+
 ## Not included on purpose
 
 This tool doesn't validate tax law, doesn't check TaxSlayer field names against the current software version, and doesn't replace a preparer's judgment on whether an adjustment applies. It just does the arithmetic the spreadsheet did.

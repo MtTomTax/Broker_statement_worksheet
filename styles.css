@@ -355,16 +355,21 @@ a { color: var(--accent); }
 
 .fund-table, .summary-table {
   border-collapse: collapse;
-  width: 100%;
-  min-width: 46rem;
+  width: auto;
   background: var(--paper-raised);
   box-shadow: var(--shadow-card);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
 }
 
-.summary-table { min-width: 32rem; }
+.summary-table { min-width: 30rem; width: 100%; }
 
-.fund-table th, .fund-table td,
+.fund-table th, .fund-table td {
+  padding: 0.35rem 0.4rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+
 .summary-table th, .summary-table td {
   padding: 0.55rem 0.65rem;
   border-bottom: 1px solid var(--line);
@@ -372,15 +377,37 @@ a { color: var(--accent); }
   vertical-align: middle;
 }
 
+/* Column widths — kept tight and fixed so the fund tables (up to 8
+   columns on Step 3) fit without horizontal scrolling on a normal
+   screen, and fit a printed portrait page without clipping. */
+.fund-table { table-layout: fixed; }
+.fund-table .col-fund { width: 8rem; }
+.fund-table .col-money { width: 4.4rem; }
+.fund-table .col-pct { width: 3.6rem; }
+.fund-table .col-remove { width: 1.4rem; }
+
+/* A block-level <table> with width:auto fills its container, which then
+   forces table-layout:fixed to redistribute the extra space across
+   columns unevenly. Pinning each table's own width to the exact sum of
+   its column widths avoids that entirely. */
+#s2-table { width: 26.2rem; }
+#s3-table, #s4-table { width: 39.4rem; }
+
 .fund-table thead th, .summary-table thead th {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
+  line-height: 1.25;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   color: var(--ink-faint);
   background: var(--paper-sunken);
   font-weight: 500;
   border-bottom: 1.5px solid var(--line-strong);
+  /* Headers must wrap even though .col-money/.col-pct set nowrap for
+     data cells below — those classes are shared with these <th>s. */
+  white-space: normal !important;
+  text-align: left !important;
+  overflow-wrap: break-word;
 }
 
 .fund-table tfoot td { font-weight: 600; border-top: 2px solid var(--ink); border-bottom: none; }
@@ -392,16 +419,17 @@ a { color: var(--accent); }
 
 .fund-table input {
   width: 100%;
-  min-width: 5.5rem;
+  min-width: 0;
+  box-sizing: border-box;
   border: 1px solid var(--line);
   border-radius: 2px;
-  padding: 0.35rem 0.45rem;
+  padding: 0.3rem 0.3rem;
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: 0.76rem;
   background: var(--paper);
 }
 
-.fund-table input[type="text"] { font-family: var(--font-body); min-width: 8rem; }
+.fund-table input[type="text"] { font-family: var(--font-body); font-size: 0.78rem; }
 
 .fund-table input:focus { outline: none; border-color: var(--accent); background: var(--paper-raised); }
 
@@ -486,9 +514,9 @@ a { color: var(--accent); }
 .pill-subtract { background: var(--subtract-soft); color: var(--subtract-ink); }
 .pill-addition { background: var(--addition-soft); color: var(--addition-ink); }
 
-.summary-actions { margin-top: 1.5rem; }
+.panel-actions { margin-top: 1.5rem; }
 
-#printBtn, .footer-actions button {
+.print-page-btn, .footer-actions button {
   font-family: var(--font-body);
   font-size: 0.85rem;
   padding: 0.55rem 1.1rem;
@@ -499,7 +527,7 @@ a { color: var(--accent); }
   cursor: pointer;
 }
 
-#printBtn:hover, .footer-actions button:hover { background: var(--ink); color: var(--paper-raised); }
+.print-page-btn:hover, .footer-actions button:hover { background: var(--ink); color: var(--paper-raised); }
 
 .footer-actions button.danger { border-color: var(--warn); color: var(--warn); }
 .footer-actions button.danger:hover { background: var(--warn); color: #fff; }
@@ -550,10 +578,28 @@ a { color: var(--accent); }
 /* ---------- Print ---------- */
 
 @media print {
-  .letterhead-fields input { border: none; }
-  .stepper, .app-footer, .add-row-btn, .remove-row-btn, .taxslayer-path, #printBtn { display: none !important; }
-  .app { grid-template-columns: 1fr; }
-  .panel { display: none !important; }
-  #panel-summary { display: block !important; }
+  @page { margin: 0.5in; }
+  html { font-size: 13px; }
   body { background: #fff; }
+  .letterhead-fields input { border: none; }
+  .stepper, .app-footer, .add-row-btn, .remove-row-btn, .taxslayer-path, .print-page-btn {
+    display: none !important;
+  }
+  .app { grid-template-columns: 1fr; }
+  .panels { padding: 0.5rem 0; }
+  /* Print whichever panel is currently open, not just Summary — lets a
+     preparer open Step 2/3/4 and print just that page for QR. */
+  .panel { display: none !important; }
+  .panel.active { display: block !important; }
+  .table-wrap { overflow: visible !important; }
+  .fund-table { box-shadow: none; }
+  .question-card { box-shadow: none; border: 1px solid var(--line); }
+
+  /* Give the fund-name column much more room on paper — screen keeps it
+     narrow to avoid horizontal scrolling, but a printed page has plenty
+     of unused width and full fund names matter for a QR reviewer. */
+  .fund-table .col-fund { width: 15rem; }
+  #s2-table { width: 33.2rem; }
+  #s3-table, #s4-table { width: 46.4rem; }
+  .fund-table input[type="text"] { font-size: 0.72rem; }
 }

@@ -22,7 +22,7 @@ function defaultState() {
     step1: { box3: "" },
     step2: { ref: "", rows: [blankRow2(), blankRow2()] },
     step3: { rows: [blankRow3(), blankRow3()] },
-    step4: { ref: "", rows: [blankRow2(), blankRow2()] },
+    step4: { ref: "", rows: [blankRow3(), blankRow3()] },
   };
 }
 function blankRow2() { return { fund: "", total: "", pct: "", direct: "" }; }
@@ -153,7 +153,7 @@ function renderStep3() {
   tbody.innerHTML = "";
   const r = calcStep3();
   r.rows.forEach((row, i) => {
-    tbody.appendChild(fundRow3(row, i, r.rows.length > 1));
+    tbody.appendChild(fundRowCapGain(row, i, "s3", r.rows.length > 1));
   });
   $("#s3-total-b").textContent = fmt(r.totalB);
   $("#s3-total-c").textContent = fmt(r.totalC);
@@ -168,7 +168,7 @@ function renderStep4() {
   tbody.innerHTML = "";
   const r = calcStep4();
   r.rows.forEach((row, i) => {
-    tbody.appendChild(fundRow2(row, i, "s4", r.rows.length > 1));
+    tbody.appendChild(fundRowCapGain(row, i, "s4", r.rows.length > 1));
   });
   $("#s4-total-b").textContent = fmt(r.totalB);
   $("#s4-total-c").textContent = fmt(r.totalC);
@@ -217,26 +217,33 @@ function fundRow2(row, idx, prefix, removable) {
   return tr;
 }
 
-function fundRow3(row, idx, removable) {
+// Shared by Step 3 and Step 4 — both tables have the same 8-column shape:
+// fund, total distribution, capital gain to subtract, dividend distributions
+// (calculated), a %, an optional direct $, a final calculated $, remove.
+function fundRowCapGain(row, idx, prefix, removable) {
   const tr = document.createElement("tr");
-  tr.appendChild(cellInput("text", row.fund, (v) => (state.step3.rows[idx].fund = v), "Fund name"));
-  tr.appendChild(cellInput("number", row.total, (v) => (state.step3.rows[idx].total = v)));
-  tr.appendChild(cellInput("number", row.capGain, (v) => (state.step3.rows[idx].capGain = v)));
+  const key = stepKey(prefix);
+  const pctHint = prefix === "s3" ? "e.g. 40" : "e.g. 15";
+  const finalValue = prefix === "s3" ? row.usInterest : row.calc;
+
+  tr.appendChild(cellInput("text", row.fund, (v) => (state[key].rows[idx].fund = v), "Fund name"));
+  tr.appendChild(cellInput("number", row.total, (v) => (state[key].rows[idx].total = v)));
+  tr.appendChild(cellInput("number", row.capGain, (v) => (state[key].rows[idx].capGain = v)));
 
   const divTd = document.createElement("td");
   divTd.className = "col-money col-calc-cell";
   divTd.textContent = row.div === "" ? "—" : fmt(row.div);
   tr.appendChild(divTd);
 
-  tr.appendChild(cellInput("number", row.pct, (v) => (state.step3.rows[idx].pct = v), "e.g. 40"));
-  tr.appendChild(cellInput("number", row.direct, (v) => (state.step3.rows[idx].direct = v)));
+  tr.appendChild(cellInput("number", row.pct, (v) => (state[key].rows[idx].pct = v), pctHint));
+  tr.appendChild(cellInput("number", row.direct, (v) => (state[key].rows[idx].direct = v)));
 
   const calcTd = document.createElement("td");
   calcTd.className = "col-money col-calc-cell";
-  calcTd.textContent = fmt(row.usInterest);
+  calcTd.textContent = fmt(finalValue);
   tr.appendChild(calcTd);
 
-  tr.appendChild(removeCell("s3", idx, removable));
+  tr.appendChild(removeCell(prefix, idx, removable));
   return tr;
 }
 
@@ -274,6 +281,70 @@ function removeCell(prefix, idx, removable) {
 
 function stepKey(prefix) {
   return { s2: "step2", s3: "step3", s4: "step4" }[prefix];
+}
+
+// ---------- keyboard navigation (arrow keys + Enter between fund-table cells) ----------
+//
+// Tab/Shift+Tab already move between cells via normal browser focus order —
+// this adds the spreadsheet-style extras on top:
+//   Up/Down    move to the same column in the row above/below
+//   Left/Right jump cells too, but only in the Fund name column, and only
+//              when the cursor is already at the start/end of the text —
+//              number inputs don't reliably support reading cursor
+//              position, so their Left/Right stays native (edits the digits)
+//   Enter      moves down a row (Shift+Enter moves up); pressing Enter on
+//              the last row adds a new fund row and drops you into it
+function attachGridNavigation(tbody, addBtn) {
+  tbody.addEventListener("keydown", (e) => {
+    const input = e.target;
+    if (input.tagName !== "INPUT") return;
+    const tr = input.closest("tr");
+    if (!tr) return;
+
+    const focusCell = (rows, r, c) => {
+      const targetRow = rows[r];
+      if (!targetRow) return false;
+      const inputs = Array.from(targetRow.querySelectorAll("input"));
+      const target = inputs[c];
+      if (!target) return false;
+      target.focus();
+      target.select();
+      return true;
+    };
+
+    const rowInputs = Array.from(tr.querySelectorAll("input"));
+    const colIdx = rowInputs.indexOf(input);
+    let allRows = Array.from(tbody.children);
+    const rowIdx = allRows.indexOf(tr);
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      focusCell(allRows, rowIdx + 1, colIdx);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      focusCell(allRows, rowIdx - 1, colIdx);
+    } else if (e.key === "ArrowRight" && input.type === "text") {
+      if (input.selectionStart !== input.value.length || input.selectionEnd !== input.value.length) return;
+      e.preventDefault();
+      focusCell(allRows, rowIdx, colIdx + 1);
+    } else if (e.key === "ArrowLeft" && input.type === "text") {
+      if (input.selectionStart !== 0 || input.selectionEnd !== 0) return;
+      e.preventDefault();
+      focusCell(allRows, rowIdx, colIdx - 1);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (e.shiftKey) {
+        focusCell(allRows, rowIdx - 1, colIdx);
+        return;
+      }
+      const moved = focusCell(allRows, rowIdx + 1, colIdx);
+      if (!moved && addBtn) {
+        addBtn.click(); // adds a row and re-renders
+        allRows = Array.from(tbody.children);
+        focusCell(allRows, rowIdx + 1, colIdx);
+      }
+    }
+  });
 }
 
 // Re-render calculated cells only (avoid rebuilding inputs mid-typing → focus loss).
@@ -335,7 +406,11 @@ function patchStep4() {
   const r = calcStep4();
   const rows = $("#s4-rows").children;
   r.rows.forEach((row, i) => {
-    if (rows[i]) rows[i].querySelector(".col-calc-cell").textContent = fmt(row.calc);
+    if (rows[i]) {
+      const cells = rows[i].querySelectorAll(".col-calc-cell");
+      cells[0].textContent = row.div === "" ? "—" : fmt(row.div);
+      cells[1].textContent = fmt(row.calc);
+    }
   });
   $("#s4-total-b").textContent = fmt(r.totalB);
   $("#s4-total-c").textContent = fmt(r.totalC);
@@ -401,11 +476,18 @@ function initStep3() {
 
 function initStep4() {
   $("#s4-ref").addEventListener("input", (e) => { state.step4.ref = e.target.value; renderAllFromStep(); });
-  $("#s4-add-row").addEventListener("click", () => { state.step4.rows.push(blankRow2()); renderAll(); });
+  $("#s4-add-row").addEventListener("click", () => { state.step4.rows.push(blankRow3()); renderAll(); });
+}
+
+function initPrintButtons() {
+  // Each print button lives inside its own panel, so by the time it's
+  // clickable that panel is already the active (visible) one — just print it.
+  $$(".print-page-btn").forEach((btn) => {
+    btn.addEventListener("click", () => window.print());
+  });
 }
 
 function initFooter() {
-  $("#printBtn").addEventListener("click", () => { showPanel("summary"); setTimeout(() => window.print(), 50); });
   $("#saveBtn").addEventListener("click", () => { saveState(); flashStatus("Saved to this browser."); });
   $("#loadBtn").addEventListener("click", () => {
     const loaded = loadState();
@@ -482,7 +564,11 @@ document.addEventListener("DOMContentLoaded", () => {
   initStep2();
   initStep3();
   initStep4();
+  initPrintButtons();
   initFooter();
+  attachGridNavigation($("#s2-rows"), $("#s2-add-row"));
+  attachGridNavigation($("#s3-rows"), $("#s3-add-row"));
+  attachGridNavigation($("#s4-rows"), $("#s4-add-row"));
 
   const saved = loadState();
   if (saved) state = saved;
