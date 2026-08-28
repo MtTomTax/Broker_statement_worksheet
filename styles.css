@@ -235,6 +235,23 @@ a { color: var(--accent); }
 .note { max-width: 44rem; font-size: 0.94rem; }
 .note-muted { color: var(--ink-faint); font-size: 0.86rem; }
 
+/* A stronger, harder-to-miss callout for input rules that affect
+   correctness — like "use % OR $, never both." Copper matches the
+   "Addition" color already used elsewhere for things that need
+   attention, so the color itself is doing double duty as a signal. */
+.field-rule {
+  background: var(--addition-soft);
+  border-left: 3px solid var(--addition);
+  color: var(--addition-ink);
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  max-width: 44rem;
+  margin: 1rem 0;
+}
+.field-rule em { font-style: normal; text-decoration: underline; text-decoration-thickness: 2px; }
+
 /* ---------- Diagnostic question cards ---------- */
 
 .question-grid {
@@ -383,15 +400,15 @@ a { color: var(--accent); }
 .fund-table { table-layout: fixed; }
 .fund-table .col-fund { width: 8rem; }
 .fund-table .col-money { width: 5.6rem; }
-.fund-table .col-pct { width: 3.6rem; }
+.fund-table .col-pct { width: 4.8rem; }
 .fund-table .col-remove { width: 1.4rem; }
 
 /* A block-level <table> with width:auto fills its container, which then
    forces table-layout:fixed to redistribute the extra space across
    columns unevenly. Pinning each table's own width to the exact sum of
    its column widths avoids that entirely. */
-#s2-table { width: 29.8rem; }
-#s3-table, #s4-table { width: 41rem; }
+#s2-table { width: 31rem; }
+#s3-table, #s4-table { width: 42.2rem; }
 
 .fund-table thead th, .summary-table thead th {
   font-family: var(--font-mono);
@@ -600,7 +617,7 @@ a { color: var(--accent); }
      narrow to avoid horizontal scrolling, but a printed page has plenty
      of unused width and full fund names matter for a QR reviewer. */
   .fund-table .col-fund { width: 15rem; }
-  #s2-table { width: 36.8rem; }
-  #s3-table, #s4-table { width: 48rem; }
+  #s2-table { width: 38rem; }
+  #s3-table, #s4-table { width: 49.2rem; }
   .fund-table input[type="text"] { font-size: 0.72rem; }
 }
