@@ -203,12 +203,20 @@ function renderSummary() {
 
 // ---------- row builders ----------
 
+function orDividerCell() {
+  const td = document.createElement("td");
+  td.className = "col-or";
+  td.textContent = "or";
+  return td;
+}
+
 function fundRow2(row, idx, prefix, removable) {
   const tr = document.createElement("tr");
 
   tr.appendChild(cellInput("text", row.fund, (v) => (state[stepKey(prefix)].rows[idx].fund = v), "Fund name"));
   tr.appendChild(cellInput("number", row.total, (v) => (state[stepKey(prefix)].rows[idx].total = v)));
   tr.appendChild(cellInput("number", row.pct, (v) => (state[stepKey(prefix)].rows[idx].pct = v), "e.g. 15"));
+  tr.appendChild(orDividerCell());
   tr.appendChild(cellInput("number", row.direct, (v) => (state[stepKey(prefix)].rows[idx].direct = v)));
 
   const calcTd = document.createElement("td");
@@ -220,9 +228,10 @@ function fundRow2(row, idx, prefix, removable) {
   return tr;
 }
 
-// Shared by Step 3 and Step 4 — both tables have the same 8-column shape:
+// Shared by Step 3 and Step 4 — both tables have the same 9-column shape:
 // fund, total distribution, capital gain to subtract, dividend distributions
-// (calculated), a %, an optional direct $, a final calculated $, remove.
+// (calculated), a %, an "or" divider, an optional direct $, a final
+// calculated $, remove.
 function fundRowCapGain(row, idx, prefix, removable) {
   const tr = document.createElement("tr");
   const key = stepKey(prefix);
@@ -239,6 +248,7 @@ function fundRowCapGain(row, idx, prefix, removable) {
   tr.appendChild(divTd);
 
   tr.appendChild(cellInput("number", row.pct, (v) => (state[key].rows[idx].pct = v), pctHint));
+  tr.appendChild(orDividerCell());
   tr.appendChild(cellInput("number", row.direct, (v) => (state[key].rows[idx].direct = v)));
 
   const calcTd = document.createElement("td");

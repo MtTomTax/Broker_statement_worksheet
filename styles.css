@@ -41,6 +41,18 @@
 
 * { box-sizing: border-box; }
 
+/* No spinner arrows on any number input in the app — every numeric field
+   here is a dollar amount or a percentage, and clicking a tiny arrow to
+   count up to a real figure isn't useful. Keyboard Up/Down is already
+   repurposed for row navigation (see attachGridNavigation in app.js), so
+   removing the visual control keeps the two consistent. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
 html { -webkit-text-size-adjust: 100%; }
 
 body {
@@ -402,13 +414,24 @@ a { color: var(--accent); }
 .fund-table .col-money { width: 5.6rem; }
 .fund-table .col-pct { width: 4.8rem; }
 .fund-table .col-remove { width: 1.4rem; }
+.fund-table .col-or {
+  width: 1.6rem;
+  text-align: center;
+  vertical-align: middle;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-faint);
+}
 
 /* A block-level <table> with width:auto fills its container, which then
    forces table-layout:fixed to redistribute the extra space across
    columns unevenly. Pinning each table's own width to the exact sum of
    its column widths avoids that entirely. */
-#s2-table { width: 31rem; }
-#s3-table, #s4-table { width: 42.2rem; }
+#s2-table { width: 32.6rem; }
+#s3-table, #s4-table { width: 43.8rem; }
 
 .fund-table thead th, .summary-table thead th {
   font-family: var(--font-mono);
@@ -617,7 +640,7 @@ a { color: var(--accent); }
      narrow to avoid horizontal scrolling, but a printed page has plenty
      of unused width and full fund names matter for a QR reviewer. */
   .fund-table .col-fund { width: 15rem; }
-  #s2-table { width: 38rem; }
-  #s3-table, #s4-table { width: 49.2rem; }
+  #s2-table { width: 39.6rem; }
+  #s3-table, #s4-table { width: 50.8rem; }
   .fund-table input[type="text"] { font-size: 0.72rem; }
 }
