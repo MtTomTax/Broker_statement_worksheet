@@ -2,9 +2,12 @@
 // Montana Broker Statement Adjustment Worksheet
 // Calculation logic mirrors the original spreadsheet formulas
 // exactly (see README for the formula-to-code map).
+//
+// No client data is ever written to localStorage, sessionStorage,
+// cookies, or any network request — everything lives only in the
+// in-memory `state` object below and disappears on reload or when
+// "New worksheet" is clicked. That's deliberate, for confidentiality.
 // ============================================================
-
-const STORAGE_KEY = "mt-broker-worksheet:v1";
 
 /** @type {{
  *  client: {name:string, year:string, preparer:string, date:string},
@@ -356,7 +359,6 @@ function renderAllFromStep() {
   patchStep3();
   patchStep4();
   renderSummary();
-  scheduleAutosave();
 }
 
 function patchStep1() {
@@ -455,10 +457,10 @@ function showPanel(name) {
 }
 
 function initLetterhead() {
-  $("#clientName").addEventListener("input", (e) => { state.client.name = e.target.value; renderSummary(); scheduleAutosave(); });
-  $("#taxYear").addEventListener("input", (e) => { state.client.year = e.target.value; renderSummary(); scheduleAutosave(); });
-  $("#preparer").addEventListener("input", (e) => { state.client.preparer = e.target.value; scheduleAutosave(); });
-  $("#date").addEventListener("input", (e) => { state.client.date = e.target.value; scheduleAutosave(); });
+  $("#clientName").addEventListener("input", (e) => { state.client.name = e.target.value; renderSummary(); });
+  $("#taxYear").addEventListener("input", (e) => { state.client.year = e.target.value; renderSummary(); });
+  $("#preparer").addEventListener("input", (e) => { state.client.preparer = e.target.value; });
+  $("#date").addEventListener("input", (e) => { state.client.date = e.target.value; });
 }
 
 function initStep1() {
@@ -487,45 +489,13 @@ function initPrintButtons() {
   });
 }
 
-function initFooter() {
-  $("#saveBtn").addEventListener("click", () => { saveState(); flashStatus("Saved to this browser."); });
-  $("#loadBtn").addEventListener("click", () => {
-    const loaded = loadState();
-    if (loaded) { state = loaded; renderAll(); flashStatus("Loaded saved worksheet."); }
-    else flashStatus("No saved worksheet found in this browser.");
-  });
+function initResetButton() {
   $("#resetBtn").addEventListener("click", () => {
-    if (confirm("Start a new worksheet? This clears all fields (your saved copy, if any, is kept until you save over it).")) {
+    if (confirm("Start a new worksheet? This clears every field on the page.")) {
       state = defaultState();
       renderAll();
       flashStatus("Started a new worksheet.");
     }
-  });
-  $("#exportBtn").addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const nameSlug = (state.client.name || "worksheet").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
-    a.href = url; a.download = `mt-broker-worksheet-${nameSlug}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  });
-  $("#importBtn").addEventListener("click", () => $("#importFile").click());
-  $("#importFile").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        state = JSON.parse(reader.result);
-        renderAll();
-        flashStatus("Imported " + file.name);
-      } catch (err) {
-        flashStatus("Could not read that file — is it a worksheet export?");
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
   });
 }
 
@@ -535,22 +505,6 @@ function flashStatus(msg) {
   el.textContent = msg;
   clearTimeout(statusTimer);
   statusTimer = setTimeout(() => (el.textContent = ""), 4000);
-}
-
-let autosaveTimer;
-function scheduleAutosave() {
-  clearTimeout(autosaveTimer);
-  autosaveTimer = setTimeout(saveState, 800);
-}
-
-function saveState() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ }
-}
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) { return null; }
 }
 
 // ============================================================
@@ -565,13 +519,10 @@ document.addEventListener("DOMContentLoaded", () => {
   initStep3();
   initStep4();
   initPrintButtons();
-  initFooter();
+  initResetButton();
   attachGridNavigation($("#s2-rows"), $("#s2-add-row"));
   attachGridNavigation($("#s3-rows"), $("#s3-add-row"));
   attachGridNavigation($("#s4-rows"), $("#s4-add-row"));
-
-  const saved = loadState();
-  if (saved) state = saved;
 
   renderAll();
   showPanel("start");

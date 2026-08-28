@@ -382,7 +382,7 @@ a { color: var(--accent); }
    screen, and fit a printed portrait page without clipping. */
 .fund-table { table-layout: fixed; }
 .fund-table .col-fund { width: 8rem; }
-.fund-table .col-money { width: 4.4rem; }
+.fund-table .col-money { width: 5.6rem; }
 .fund-table .col-pct { width: 3.6rem; }
 .fund-table .col-remove { width: 1.4rem; }
 
@@ -390,8 +390,8 @@ a { color: var(--accent); }
    forces table-layout:fixed to redistribute the extra space across
    columns unevenly. Pinning each table's own width to the exact sum of
    its column widths avoids that entirely. */
-#s2-table { width: 26.2rem; }
-#s3-table, #s4-table { width: 39.4rem; }
+#s2-table { width: 29.8rem; }
+#s3-table, #s4-table { width: 41rem; }
 
 .fund-table thead th, .summary-table thead th {
   font-family: var(--font-mono);
@@ -516,7 +516,7 @@ a { color: var(--accent); }
 
 .panel-actions { margin-top: 1.5rem; }
 
-.print-page-btn, .footer-actions button {
+.print-page-btn, .page-footer button {
   font-family: var(--font-body);
   font-size: 0.85rem;
   padding: 0.55rem 1.1rem;
@@ -527,27 +527,28 @@ a { color: var(--accent); }
   cursor: pointer;
 }
 
-.print-page-btn:hover, .footer-actions button:hover { background: var(--ink); color: var(--paper-raised); }
+.print-page-btn:hover, .page-footer button:hover { background: var(--ink); color: var(--paper-raised); }
 
-.footer-actions button.danger { border-color: var(--warn); color: var(--warn); }
-.footer-actions button.danger:hover { background: var(--warn); color: #fff; }
+.page-footer button.danger { border-color: var(--warn); color: var(--warn); }
+.page-footer button.danger:hover { background: var(--warn); color: #fff; }
 
-/* ---------- Footer ---------- */
+/* ---------- Bottom of page ----------
+   Deliberately NOT a sticky/floating bar — this tool holds no client
+   data in storage of any kind (confidentiality), so there's nothing to
+   save or load, just a plain reset button in the normal page flow. The
+   flex trick on body/.app above still lets it rest at the bottom of the
+   viewport when a panel's content is short, without pinning it during
+   scroll on longer panels. */
 
-.app-footer {
-  position: sticky;
-  bottom: 0;
+.page-footer {
   background: var(--paper-raised);
   border-top: 1.5px solid var(--ink);
-  padding: 0.8rem clamp(1rem, 4vw, 3rem);
+  padding: 1.5rem clamp(1rem, 4vw, 3rem) 2rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 1rem;
-  justify-content: space-between;
 }
-
-.footer-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
 
 .save-status { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-faint); }
 
@@ -582,7 +583,7 @@ a { color: var(--accent); }
   html { font-size: 13px; }
   body { background: #fff; }
   .letterhead-fields input { border: none; }
-  .stepper, .app-footer, .add-row-btn, .remove-row-btn, .taxslayer-path, .print-page-btn {
+  .stepper, .page-footer, .add-row-btn, .remove-row-btn, .taxslayer-path, .print-page-btn {
     display: none !important;
   }
   .app { grid-template-columns: 1fr; }
@@ -599,7 +600,7 @@ a { color: var(--accent); }
      narrow to avoid horizontal scrolling, but a printed page has plenty
      of unused width and full fund names matter for a QR reviewer. */
   .fund-table .col-fund { width: 15rem; }
-  #s2-table { width: 33.2rem; }
-  #s3-table, #s4-table { width: 46.4rem; }
+  #s2-table { width: 36.8rem; }
+  #s3-table, #s4-table { width: 48rem; }
   .fund-table input[type="text"] { font-size: 0.72rem; }
 }

@@ -4,7 +4,7 @@ A small, static web tool that replaces the Excel version of the same name. It wa
 
 No backend, no build step, no dependencies. It's three files: `index.html`, `styles.css`, `app.js`.
 
-**Data stays local.** Nothing is sent anywhere — all calculations run in the browser, and "Save to this browser" just writes to that browser's `localStorage`. There's no server, no database, no analytics. Client names and dollar amounts never leave the preparer's machine unless *they* export and share the file themselves.
+**Data stays local — and isn't saved anywhere at all.** All calculations run in the browser. There's no server, no database, no analytics, and no `localStorage`/`sessionStorage`/cookies either — client names and dollar amounts exist only in the page's memory while it's open, and disappear the moment you reload, close the tab, or click "New worksheet." That's intentional, for client confidentiality: nothing about a client ever persists on the machine running this.
 
 ## Run it locally
 
