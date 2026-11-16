@@ -4,7 +4,15 @@ A small, static web tool that replaces the Excel version of the same name. It wa
 
 No backend, no build step, no dependencies. It's three files: `index.html`, `styles.css`, `app.js`.
 
-**Data stays local — and isn't saved anywhere at all.** All calculations run in the browser. There's no server, no database, no analytics, and no `localStorage`/`sessionStorage`/cookies either — client names and dollar amounts exist only in the page's memory while it's open, and disappear the moment you reload, close the tab, or click "New worksheet." That's intentional, for client confidentiality: nothing about a client ever persists on the machine running this.
+**Data stays local — and isn't saved anywhere at all.** All calculations run in the browser. There's no server, no database, no analytics, and no `localStorage`/`sessionStorage`/cookies either — dollar amounts and fund names exist only in the page's memory while it's open, and disappear the moment you reload, close the tab, or click "New worksheet." That's intentional, for client confidentiality: nothing about a client ever persists on the machine running this. The tool also has no field for the client's name at all — the printout has a blank line for the preparer to handwrite it.
+
+## Both % and $ on one line
+
+If a preparer fills in both the % and the direct $ on the same fund line, the two boxes turn red, a warning appears under the table, and the printout carries the same warning. The math uses the $ amount in that case, as the original spreadsheet did.
+
+## Printing
+
+There is one **Print full worksheet** button (left side, under the step list). It prints a single combined report: Summary first, then the detail for each step that was used, with the **Stmt page** numbers entered for each line. Steps with no entries print as a one-line "Step N – not used". Each section is kept whole, so if everything doesn't fit on one sheet the next section starts cleanly on page 2. Ctrl/Cmd+P prints the same report.
 
 ## Run it locally
 

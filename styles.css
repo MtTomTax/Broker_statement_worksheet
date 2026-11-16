@@ -115,7 +115,7 @@ a { color: var(--accent); }
 
 .letterhead-fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(9rem, 1fr));
+  grid-template-columns: repeat(3, minmax(9rem, 1fr));
   gap: 0.8rem 1.2rem;
 }
 
@@ -149,7 +149,7 @@ a { color: var(--accent); }
 
 .app {
   display: grid;
-  grid-template-columns: 15rem 1fr;
+  grid-template-columns: 13.5rem 1fr;
   max-width: 74rem;
   width: 100%;
   margin: 0 auto;
@@ -314,7 +314,8 @@ a { color: var(--accent); }
 
 /* ---------- Fields ---------- */
 
-.field-row { margin: 1.2rem 0; }
+.field-row { margin: 1.2rem 0; display: flex; flex-wrap: wrap; gap: 1.2rem 2rem; align-items: flex-start; }
+.field-page { max-width: 9rem; }
 
 .field {
   display: flex;
@@ -410,7 +411,8 @@ a { color: var(--accent); }
    columns on Step 3) fit without horizontal scrolling on a normal
    screen, and fit a printed portrait page without clipping. */
 .fund-table { table-layout: fixed; }
-.fund-table .col-fund { width: 8rem; }
+.fund-table .col-fund { width: 6.9rem; }
+.fund-table .col-page { width: 3.4rem; }
 .fund-table .col-money { width: 5.6rem; }
 .fund-table .col-pct { width: 4.8rem; }
 .fund-table .col-remove { width: 1.4rem; }
@@ -430,8 +432,8 @@ a { color: var(--accent); }
    forces table-layout:fixed to redistribute the extra space across
    columns unevenly. Pinning each table's own width to the exact sum of
    its column widths avoids that entirely. */
-#s2-table { width: 32.6rem; }
-#s3-table, #s4-table { width: 43.8rem; }
+#s2-table { width: 35.1rem; }
+#s3-table, #s4-table { width: 46.1rem; }
 
 .fund-table thead th, .summary-table thead th {
   font-family: var(--font-mono);
@@ -470,6 +472,15 @@ a { color: var(--accent); }
 }
 
 .fund-table input[type="text"] { font-family: var(--font-body); font-size: 0.78rem; }
+.fund-table input.page-input { font-family: var(--font-mono); font-size: 0.76rem; }
+
+/* Line has both a % and a direct $ entered — see flagBothFilled() in app.js */
+.fund-table tr.both-filled input.in-pct,
+.fund-table tr.both-filled input.in-direct {
+  border: 2px solid var(--warn);
+  background: var(--warn-soft);
+}
+.fund-table tr.both-filled .col-or { color: var(--warn); font-weight: 700; }
 
 .fund-table input:focus { outline: none; border-color: var(--accent); background: var(--paper-raised); }
 
@@ -556,7 +567,22 @@ a { color: var(--accent); }
 
 .panel-actions { margin-top: 1.5rem; }
 
-.print-page-btn, .page-footer button {
+.print-full-btn {
+  margin-top: 1rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper-raised);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.print-full-btn:hover { background: var(--accent-ink); border-color: var(--accent-ink); }
+
+.page-footer button {
   font-family: var(--font-body);
   font-size: 0.85rem;
   padding: 0.55rem 1.1rem;
@@ -567,7 +593,7 @@ a { color: var(--accent); }
   cursor: pointer;
 }
 
-.print-page-btn:hover, .page-footer button:hover { background: var(--ink); color: var(--paper-raised); }
+.page-footer button:hover { background: var(--ink); color: var(--paper-raised); }
 
 .page-footer button.danger { border-color: var(--warn); color: var(--warn); }
 .page-footer button.danger:hover { background: var(--warn); color: #fff; }
@@ -616,31 +642,56 @@ a { color: var(--accent); }
   .letterhead-fields { grid-template-columns: 1fr; }
 }
 
+/* ---------- Print report (hidden on screen) ---------- */
+
+#print-report { display: none; }
+
 /* ---------- Print ---------- */
 
 @media print {
-  @page { margin: 0.5in; }
-  html { font-size: 13px; }
-  body { background: #fff; }
-  .letterhead-fields input { border: none; }
-  .stepper, .page-footer, .add-row-btn, .remove-row-btn, .taxslayer-path, .print-page-btn {
-    display: none !important;
-  }
-  .app { grid-template-columns: 1fr; }
-  .panels { padding: 0.5rem 0; }
-  /* Print whichever panel is currently open, not just Summary — lets a
-     preparer open Step 2/3/4 and print just that page for QR. */
-  .panel { display: none !important; }
-  .panel.active { display: block !important; }
-  .table-wrap { overflow: visible !important; }
-  .fund-table { box-shadow: none; }
-  .question-card { box-shadow: none; border: 1px solid var(--line); }
+  @page { margin: 0.6in; }
+  html { font-size: 12px; }
+  body { background: #fff; display: block; min-height: 0; color: #000; }
 
-  /* Give the fund-name column much more room on paper — screen keeps it
-     narrow to avoid horizontal scrolling, but a printed page has plenty
-     of unused width and full fund names matter for a QR reviewer. */
-  .fund-table .col-fund { width: 15rem; }
-  #s2-table { width: 39.6rem; }
-  #s3-table, #s4-table { width: 50.8rem; }
-  .fund-table input[type="text"] { font-size: 0.72rem; }
+  /* The printout is the combined report only — nothing from the
+     on-screen worksheet (inputs, tips, buttons, step navigation). */
+  .letterhead, .app, .page-footer { display: none !important; }
+  #print-report { display: block; font-family: var(--font-body); }
+
+  #print-report h1 { font-size: 1.5rem; margin: 0 0 0.9rem; }
+  #print-report h2 { font-size: 1.05rem; margin: 0 0 0.5rem; }
+
+  .pr-meta { display: flex; flex-wrap: wrap; gap: 0.9rem 1.5rem; margin-bottom: 1.4rem; }
+  .pr-field { display: flex; align-items: flex-end; gap: 0.4rem; flex: 1 1 9rem; }
+  .pr-field-wide { flex: 1 1 100%; }
+  .pr-field-label { font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+  .pr-field-line { flex: 1; border-bottom: 1.2px solid #000; min-height: 1.5rem; padding: 0 0.2rem; font-size: 0.9rem; }
+  .pr-field-wide .pr-field-line { min-height: 1.9rem; }
+
+  /* Whole sections stay together: if one doesn't fit on the rest of the
+     page it moves, intact, to the next page. */
+  .pr-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin: 0 0 1.3rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid #999;
+  }
+  .pr-section:last-child { border-bottom: none; }
+  .pr-unused { padding-bottom: 0.4rem; margin-bottom: 0.6rem; color: #444; font-style: italic; }
+  .pr-unused p { margin: 0; }
+
+  .pr-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin: 0.5rem 0; }
+  .pr-table th, .pr-table td { border: 1px solid #777; padding: 0.3rem 0.4rem; text-align: left; vertical-align: top; }
+  .pr-table th { background: #e8e8e8; font-weight: 600; font-size: 0.72rem; }
+  .pr-table .num { text-align: right; font-family: var(--font-mono); white-space: nowrap; }
+  .pr-table .pg { width: 4.2rem; }
+  .pr-table tr { break-inside: avoid; page-break-inside: avoid; }
+  .pr-table tfoot td { font-weight: 700; background: #f3f3f3; }
+
+  .pr-line { display: flex; justify-content: space-between; gap: 1rem; margin: 0.3rem 0; font-size: 0.9rem; max-width: 36rem; }
+  .pr-line-value { font-family: var(--font-mono); }
+  .pr-line-strong { font-weight: 700; border-top: 1.5px solid #000; padding-top: 0.3rem; margin-top: 0.5rem; }
+  .pr-check { font-size: 0.8rem; margin: 0.3rem 0; }
+  .pr-warn { font-weight: 700; }
 }

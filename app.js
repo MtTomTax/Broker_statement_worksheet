@@ -10,26 +10,26 @@
 // ============================================================
 
 /** @type {{
- *  client: {name:string, year:string, preparer:string, date:string},
- *  step1: {box3: string},
- *  step2: {ref: string, rows: Array<{fund:string, total:string, pct:string, direct:string}>},
- *  step3: {rows: Array<{fund:string, total:string, capGain:string, pct:string, direct:string}>},
- *  step4: {ref: string, rows: Array<{fund:string, total:string, capGain:string, pct:string, direct:string}>}
+ *  client: {year:string, preparer:string, date:string},   // no client name, by design
+ *  step1: {box3: string, page: string},
+ *  step2: {ref: string, rows: Array<{fund:string, page:string, total:string, pct:string, direct:string}>},
+ *  step3: {rows: Array<{fund:string, page:string, total:string, capGain:string, pct:string, direct:string}>},
+ *  step4: {ref: string, rows: Array<{fund:string, page:string, total:string, capGain:string, pct:string, direct:string}>}
  * }}
  */
 let state = defaultState();
 
 function defaultState() {
   return {
-    client: { name: "", year: "", preparer: "", date: "" },
-    step1: { box3: "" },
+    client: { year: "", preparer: "", date: "" },
+    step1: { box3: "", page: "" },
     step2: { ref: "", rows: [blankRow2(), blankRow2()] },
     step3: { rows: [blankRow3(), blankRow3()] },
     step4: { ref: "", rows: [blankRow3(), blankRow3()] },
   };
 }
-function blankRow2() { return { fund: "", total: "", pct: "", direct: "" }; }
-function blankRow3() { return { fund: "", total: "", capGain: "", pct: "", direct: "" }; }
+function blankRow2() { return { fund: "", page: "", total: "", pct: "", direct: "" }; }
+function blankRow3() { return { fund: "", page: "", total: "", capGain: "", pct: "", direct: "" }; }
 
 // ---------- number helpers ----------
 const num = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
@@ -111,10 +111,10 @@ function renderAll() {
   renderStep3();
   renderStep4();
   renderSummary();
+  flagBothFilled();
 }
 
 function renderLetterhead() {
-  $("#clientName").value = state.client.name;
   $("#taxYear").value = state.client.year;
   $("#preparer").value = state.client.preparer;
   $("#date").value = state.client.date;
@@ -122,6 +122,7 @@ function renderLetterhead() {
 
 function renderStep1() {
   $("#s1-box3").value = state.step1.box3;
+  $("#s1-page").value = state.step1.page;
   const r = calcStep1();
   $("#s1-result").textContent = fmt(r.subtraction);
 }
@@ -192,9 +193,30 @@ function renderStep4() {
   }
 }
 
+// ---------- "% and $ both entered" flag ----------
+// A fund line must use either a % or a direct $ — never both. The math
+// uses the direct $ when both are present, so flag the line (red inputs
+// plus a message under the table) to make sure the preparer notices.
+const bothFilled = (r) => filled(r.pct) && filled(r.direct);
+
+function bothFilledLabels(rows) {
+  return rows.map((r, i) => (bothFilled(r) ? (filled(r.fund) ? r.fund.trim() : "row " + (i + 1)) : null))
+             .filter(Boolean);
+}
+
+function flagBothFilled() {
+  [["s2", state.step2.rows], ["s3", state.step3.rows], ["s4", state.step4.rows]].forEach(([p, rows]) => {
+    const trs = $("#" + p + "-rows").children;
+    rows.forEach((r, i) => { if (trs[i]) trs[i].classList.toggle("both-filled", bothFilled(r)); });
+    const labels = bothFilledLabels(rows);
+    $("#" + p + "-both").textContent = labels.length
+      ? "\u26a0 Both a % and a $ amount are entered for " + labels.join(", ") +
+        ". Only the $ amount is being used \u2014 clear whichever one you don\u2019t mean."
+      : "";
+  });
+}
+
 function renderSummary() {
-  $("#summary-client").textContent = "Client: " + (state.client.name || "—") +
-    (state.client.year ? "  ·  Tax year " + state.client.year : "");
   $("#sum-box3").textContent = fmt(calcStep1().subtraction);
   $("#sum-box8").textContent = fmt(calcStep2().addition);
   $("#sum-div1a").textContent = fmt(calcStep3().subtraction);
@@ -214,10 +236,13 @@ function fundRow2(row, idx, prefix, removable) {
   const tr = document.createElement("tr");
 
   tr.appendChild(cellInput("text", row.fund, (v) => (state[stepKey(prefix)].rows[idx].fund = v), "Fund name"));
+  tr.appendChild(pageInputCell(row.page, (v) => (state[stepKey(prefix)].rows[idx].page = v)));
   tr.appendChild(cellInput("number", row.total, (v) => (state[stepKey(prefix)].rows[idx].total = v)));
   tr.appendChild(cellInput("number", row.pct, (v) => (state[stepKey(prefix)].rows[idx].pct = v), "e.g. 15"));
   tr.appendChild(orDividerCell());
   tr.appendChild(cellInput("number", row.direct, (v) => (state[stepKey(prefix)].rows[idx].direct = v)));
+  tr.querySelectorAll("input[type=number]")[1].classList.add("in-pct");
+  tr.querySelectorAll("input[type=number]")[2].classList.add("in-direct");
 
   const calcTd = document.createElement("td");
   calcTd.className = "col-money col-calc-cell";
@@ -239,6 +264,7 @@ function fundRowCapGain(row, idx, prefix, removable) {
   const finalValue = prefix === "s3" ? row.usInterest : row.calc;
 
   tr.appendChild(cellInput("text", row.fund, (v) => (state[key].rows[idx].fund = v), "Fund name"));
+  tr.appendChild(pageInputCell(row.page, (v) => (state[key].rows[idx].page = v)));
   tr.appendChild(cellInput("number", row.total, (v) => (state[key].rows[idx].total = v)));
   tr.appendChild(cellInput("number", row.capGain, (v) => (state[key].rows[idx].capGain = v)));
 
@@ -250,6 +276,8 @@ function fundRowCapGain(row, idx, prefix, removable) {
   tr.appendChild(cellInput("number", row.pct, (v) => (state[key].rows[idx].pct = v), pctHint));
   tr.appendChild(orDividerCell());
   tr.appendChild(cellInput("number", row.direct, (v) => (state[key].rows[idx].direct = v)));
+  tr.querySelectorAll("input[type=number]")[2].classList.add("in-pct");
+  tr.querySelectorAll("input[type=number]")[3].classList.add("in-direct");
 
   const calcTd = document.createElement("td");
   calcTd.className = "col-money col-calc-cell";
@@ -272,6 +300,16 @@ function cellInput(type, value, onChange, placeholder) {
     renderAllFromStep(); // recalc without losing focus
   });
   td.appendChild(input);
+  return td;
+}
+
+// Narrow free-text cell for the broker statement page number (e.g. "14" or "14-15").
+function pageInputCell(value, onChange) {
+  const td = cellInput("text", value, onChange);
+  const input = td.querySelector("input");
+  input.maxLength = 12;
+  input.autocomplete = "off";
+  input.className = "page-input";
   return td;
 }
 
@@ -369,6 +407,7 @@ function renderAllFromStep() {
   patchStep3();
   patchStep4();
   renderSummary();
+  flagBothFilled();
 }
 
 function patchStep1() {
@@ -442,6 +481,210 @@ function patchStep4() {
 }
 
 // ============================================================
+// Print report — one combined printout (Summary first, then step detail)
+//
+// Built as plain text from the in-memory `state` only when printing;
+// it holds no inputs, is hidden on screen, and is the only thing
+// shown by the browser's print dialog. Unused steps collapse to a
+// single "Step N – not used" line. Sections never split across pages
+// (see .pr-section in styles.css), so overflow lands on a clean page 2.
+// ============================================================
+
+const filled = (v) => String(v === null || v === undefined ? "" : v).trim() !== "";
+
+function h(tag, cls, text) {
+  const el = document.createElement(tag);
+  if (cls) el.className = cls;
+  if (text !== undefined) el.textContent = text;
+  return el;
+}
+
+const prMoney = (v) => (filled(v) ? fmt(num(v)) : "");
+const prPct = (v) => (filled(v) ? num(v) + "%" : "");
+
+function prTable(cols, bodyRows, footRow) {
+  const table = h("table", "pr-table");
+  const thead = h("thead");
+  const hr = h("tr");
+  cols.forEach((c) => hr.appendChild(h("th", c.cls || "", c.h)));
+  thead.appendChild(hr);
+  table.appendChild(thead);
+  const tbody = h("tbody");
+  bodyRows.forEach((cells) => {
+    const tr = h("tr");
+    cells.forEach((txt, i) => tr.appendChild(h("td", cols[i].cls || "", txt)));
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  if (footRow) {
+    const tfoot = h("tfoot");
+    const tr = h("tr");
+    footRow.forEach((txt, i) => tr.appendChild(h("td", cols[i].cls || "", txt)));
+    tfoot.appendChild(tr);
+    table.appendChild(tfoot);
+  }
+  return table;
+}
+
+function prLine(label, value, strong) {
+  const p = h("p", "pr-line" + (strong ? " pr-line-strong" : ""));
+  p.appendChild(h("span", "pr-line-label", label));
+  p.appendChild(h("span", "pr-line-value", value));
+  return p;
+}
+
+function prMetaField(label, value, wide) {
+  const f = h("span", "pr-field" + (wide ? " pr-field-wide" : ""));
+  f.appendChild(h("span", "pr-field-label", label));
+  f.appendChild(h("span", "pr-field-line", value || " "));
+  return f;
+}
+
+function prDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+  return m ? `${m[2]}/${m[3]}/${m[1]}` : iso || "";
+}
+
+const rowUsed = (r) => ["fund", "page", "total", "capGain", "pct", "direct"].some((k) => filled(r[k]));
+
+function stepUsed() {
+  return {
+    s1: filled(state.step1.box3),
+    s2: filled(state.step2.ref) || state.step2.rows.some(rowUsed),
+    s3: state.step3.rows.some(rowUsed),
+    s4: filled(state.step4.ref) || state.step4.rows.some(rowUsed),
+  };
+}
+
+const STEP_TITLES = {
+  s1: "Step 1 – Box 3, Savings Bond & Treasury Interest (1099-INT)",
+  s2: "Step 2 – Box 8, Tax-Exempt Interest (1099-INT)",
+  s3: "Step 3 – Box 1a, Dividends incl. U.S. Treasury Interest (1099-DIV)",
+  s4: "Step 4 – Box 12, Exempt-Interest Dividends (1099-DIV)",
+};
+
+function prUnused(key) {
+  const sec = h("section", "pr-section pr-unused");
+  sec.appendChild(h("p", "", STEP_TITLES[key].split(" – ")[0] + " – not used"));
+  return sec;
+}
+
+function prStep1() {
+  const sec = h("section", "pr-section");
+  sec.appendChild(h("h2", "", STEP_TITLES.s1));
+  sec.appendChild(prLine("Amount in Box 3", prMoney(state.step1.box3)));
+  sec.appendChild(prLine("Statement page no.", state.step1.page.trim()));
+  sec.appendChild(prLine("Montana subtraction amount", fmt(calcStep1().subtraction), true));
+  return sec;
+}
+
+function prStep2() {
+  const r = calcStep2();
+  const sec = h("section", "pr-section");
+  sec.appendChild(h("h2", "", STEP_TITLES.s2));
+  sec.appendChild(prLine("Box 8 reference total", prMoney(state.step2.ref)));
+  const cols = [
+    { h: "Fund name" }, { h: "Stmt page", cls: "pg" }, { h: "Total ($)", cls: "num" },
+    { h: "% MT", cls: "num" }, { h: "$ MT direct", cls: "num" }, { h: "MT $ calc.", cls: "num" },
+  ];
+  const body = r.rows.filter(rowUsed).map((x) => [
+    x.fund, x.page, prMoney(x.total), prPct(x.pct), prMoney(x.direct), fmt(x.calc),
+  ]);
+  sec.appendChild(prTable(cols, body, ["Total", "", fmt(r.totalB), "", "", fmt(r.totalE)]));
+  if (filled(state.step2.ref) || r.totalB !== 0) {
+    sec.appendChild(h("p", "pr-check" + (r.matches ? "" : " pr-warn"),
+      r.matches ? "Fund totals match the Box 8 reference total."
+                : "WARNING: fund totals do not match the Box 8 reference total."));
+  }
+  prBothWarning(sec, r.rows);
+  sec.appendChild(prLine("Montana addition amount (non-Montana portion)", fmt(r.addition), true));
+  return sec;
+}
+
+function prBothWarning(sec, rows) {
+  const labels = bothFilledLabels(rows);
+  if (labels.length) {
+    sec.appendChild(h("p", "pr-check pr-warn",
+      "WARNING: both a % and a $ were entered for " + labels.join(", ") + " (only the $ amount was used)."));
+  }
+}
+
+function prCapGainStep(key, calc, titleKey, refLabel, pctHead, directHead, calcHead, resultLabel, resultVal) {
+  const r = calc;
+  const sec = h("section", "pr-section");
+  sec.appendChild(h("h2", "", STEP_TITLES[titleKey]));
+  if (refLabel) sec.appendChild(prLine(refLabel, prMoney(state[key].ref)));
+  const cols = [
+    { h: "Fund name" }, { h: "Stmt page", cls: "pg" }, { h: "Total ($)", cls: "num" },
+    { h: "Cap. gain ($)", cls: "num" }, { h: "Div. distr.", cls: "num" },
+    { h: pctHead, cls: "num" }, { h: directHead, cls: "num" }, { h: calcHead, cls: "num" },
+  ];
+  const body = r.rows.filter(rowUsed).map((x) => [
+    x.fund, x.page, prMoney(x.total), prMoney(x.capGain),
+    x.div === "" ? "" : fmt(x.div), prPct(x.pct), prMoney(x.direct),
+    fmt(key === "step3" ? x.usInterest : x.calc),
+  ]);
+  sec.appendChild(prTable(cols, body, ["Total", "", fmt(r.totalB), fmt(r.totalC), fmt(r.totalD), "", "", fmt(r.totalG)]));
+  if (refLabel && (filled(state[key].ref) || r.totalB !== 0)) {
+    sec.appendChild(h("p", "pr-check" + (r.matches ? "" : " pr-warn"),
+      r.matches ? "Fund totals match the Box 12 reference total."
+                : "WARNING: fund totals do not match the Box 12 reference total."));
+  }
+  prBothWarning(sec, r.rows);
+  sec.appendChild(prLine(resultLabel, resultVal, true));
+  return sec;
+}
+
+function prSummary(used) {
+  const sec = h("section", "pr-section");
+  sec.appendChild(h("h2", "", "Summary – TaxSlayer entries"));
+  const cols = [{ h: "Adjustment" }, { h: "Amount", cls: "num" }, { h: "Enter as" }];
+  const note = (u, text) => (u ? text : "Not used – no entry needed");
+  const body = [
+    ["Box 3 – Savings Bond Interest", fmt(calcStep1().subtraction),
+      note(used.s1, "Subtraction – State Interest section")],
+    ["Box 8 – Tax-Exempt Interest, non-Montana portion", fmt(calcStep2().addition),
+      note(used.s2, "Addition – Taxable State Interest Item, State = Montana")],
+    ["Dividends – U.S. Treasury Interest (Box 1a)", fmt(calcStep3().subtraction),
+      note(used.s3, "Subtraction – State Dividend section")],
+    ["Box 12 – Exempt-Interest Dividends, non-Montana portion", fmt(calcStep4().addition),
+      note(used.s4, "Addition – Taxable State Dividend Item, State = Montana")],
+  ];
+  sec.appendChild(prTable(cols, body));
+  return sec;
+}
+
+function buildPrintReport() {
+  const root = $("#print-report");
+  root.replaceChildren();
+
+  root.appendChild(h("h1", "", "Montana Broker Statement Adjustment Worksheet"));
+  const meta = h("div", "pr-meta");
+  // Client name is deliberately a blank line to be handwritten — never typed in.
+  meta.appendChild(prMetaField("Client name", "", true));
+  meta.appendChild(prMetaField("Tax year", state.client.year.trim()));
+  meta.appendChild(prMetaField("Preparer", state.client.preparer.trim()));
+  meta.appendChild(prMetaField("Date", prDate(state.client.date)));
+  root.appendChild(meta);
+
+  const used = stepUsed();
+  root.appendChild(prSummary(used));
+
+  root.appendChild(used.s1 ? prStep1() : prUnused("s1"));
+  root.appendChild(used.s2 ? prStep2() : prUnused("s2"));
+  root.appendChild(used.s3
+    ? prCapGainStep("step3", calcStep3(), "s3", null,
+        "% US int.", "$ US direct", "US $ calc.",
+        "Montana subtraction amount", fmt(calcStep3().subtraction))
+    : prUnused("s3"));
+  root.appendChild(used.s4
+    ? prCapGainStep("step4", calcStep4(), "s4", "Box 12 reference total",
+        "% MT", "$ MT direct", "MT $ calc.",
+        "Montana addition amount (non-Montana portion)", fmt(calcStep4().addition))
+    : prUnused("s4"));
+}
+
+// ============================================================
 // Wiring
 // ============================================================
 
@@ -467,14 +710,14 @@ function showPanel(name) {
 }
 
 function initLetterhead() {
-  $("#clientName").addEventListener("input", (e) => { state.client.name = e.target.value; renderSummary(); });
-  $("#taxYear").addEventListener("input", (e) => { state.client.year = e.target.value; renderSummary(); });
+  $("#taxYear").addEventListener("input", (e) => { state.client.year = e.target.value; });
   $("#preparer").addEventListener("input", (e) => { state.client.preparer = e.target.value; });
   $("#date").addEventListener("input", (e) => { state.client.date = e.target.value; });
 }
 
 function initStep1() {
   $("#s1-box3").addEventListener("input", (e) => { state.step1.box3 = e.target.value; renderAllFromStep(); });
+  $("#s1-page").addEventListener("input", (e) => { state.step1.page = e.target.value; });
 }
 
 function initStep2() {
@@ -492,11 +735,14 @@ function initStep4() {
 }
 
 function initPrintButtons() {
-  // Each print button lives inside its own panel, so by the time it's
-  // clickable that panel is already the active (visible) one — just print it.
-  $$(".print-page-btn").forEach((btn) => {
-    btn.addEventListener("click", () => window.print());
+  // One button prints the whole worksheet. The report is rebuilt from the
+  // in-memory data every time (button, Ctrl/Cmd+P, or the browser's Print
+  // menu), so the printout can never be stale.
+  $("#printFullBtn").addEventListener("click", () => {
+    buildPrintReport();
+    window.print();
   });
+  window.addEventListener("beforeprint", buildPrintReport);
 }
 
 function initResetButton() {

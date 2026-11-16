@@ -19,7 +19,6 @@
     <p class="subtitle">Step-by-step help for Montana interest &amp; dividend adjustments from a consolidated 1099</p>
   </div>
   <div class="letterhead-fields">
-    <label>Client name <input id="clientName" type="text" placeholder="—"></label>
     <label>Tax year <input id="taxYear" type="text" placeholder="—" inputmode="numeric"></label>
     <label>Preparer <input id="preparer" type="text" placeholder="—"></label>
     <label>Date <input id="date" type="date"></label>
@@ -35,6 +34,7 @@
     <button class="step-btn" data-panel="step3"><span class="step-tag">1a</span><span class="step-label">Dividends &amp; US Interest</span></button>
     <button class="step-btn" data-panel="step4"><span class="step-tag">BOX&nbsp;12</span><span class="step-label">Exempt-Interest Dividends</span></button>
     <button class="step-btn" data-panel="summary"><span class="step-tag">&Sigma;</span><span class="step-label">Summary</span></button>
+    <button class="print-full-btn" id="printFullBtn" type="button">Print full worksheet</button>
   </nav>
 
   <main class="panels">
@@ -70,7 +70,7 @@
       </div>
 
       <p class="note">If you answered &ldquo;no&rdquo; to all four questions, no Montana adjustment is needed for this statement. Otherwise, work through each step that applies, in order. When you're done, the Summary tab collects everything you'll need to enter into TaxSlayer.</p>
-      <p class="note note-muted">Tip: after finishing a client's worksheet, open the Summary tab and use <strong>Print summary</strong> &mdash; include the printout with your files for Quality Review.</p>
+      <p class="note note-muted">Tip: when you finish, click <strong>Print full worksheet</strong> (left side, under the steps). It prints the Summary first, then the detail for every step you used, on one clean printout for Quality Review. Write the client's name on the printout by hand &mdash; this tool never asks for it.</p>
     </section>
 
     <!-- STEP 1 -->
@@ -85,6 +85,11 @@
           <span class="hint">Type the dollar amount exactly as shown on the statement.</span>
           <span class="money-input"><span class="prefix">$</span><input id="s1-box3" type="number" step="0.01" min="0" inputmode="decimal"></span>
         </label>
+        <label class="field field-page">
+          <span>Statement page no.</span>
+          <span class="hint">Page where you found it.</span>
+          <span class="money-input"><input id="s1-page" type="text" maxlength="12" autocomplete="off"></span>
+        </label>
       </div>
 
       <div class="result-block result-subtract">
@@ -96,10 +101,6 @@
         <summary>Where this goes in TaxSlayer</summary>
         <p>Federal Section &rarr; Income &rarr; Interest and Dividends &rarr; Interest or Dividend Income &rarr; Add Interest and Dividends &rarr; Interest Income, Form 1099-INT. Enter the federal amount as shown on the statement, then scroll down to &ldquo;Amount of Interest on U.S. Savings Bonds and Treasury Obligations you want subtracted from your state return&rdquo; and enter the amount above. Confirm the state selected is Montana.</p>
       </details>
-
-      <div class="panel-actions">
-        <button class="print-page-btn" type="button">Print this page</button>
-      </div>
     </section>
 
     <!-- STEP 2 -->
@@ -121,12 +122,13 @@
       <div class="table-wrap">
         <table class="fund-table" id="s2-table">
           <colgroup>
-            <col class="col-fund"><col class="col-money"><col class="col-pct">
+            <col class="col-fund"><col class="col-page"><col class="col-money"><col class="col-pct">
             <col class="col-or"><col class="col-money"><col class="col-money"><col class="col-remove">
           </colgroup>
           <thead>
             <tr>
               <th class="col-fund">Fund name</th>
+              <th class="col-page" title="Page of the broker statement where this fund's figures are found">Stmt page</th>
               <th class="col-money" title="Total tax-exempt interest ($)">Total ($)</th>
               <th class="col-pct" title="% from Montana">% MT</th>
               <th class="col-or"></th>
@@ -139,8 +141,9 @@
           <tfoot>
             <tr>
               <td class="total-label">Total</td>
+              <td></td>
               <td class="col-money" id="s2-total-b">$0.00</td>
-              <td></td><td></td>
+              <td></td><td></td><td></td>
               <td class="col-money col-calc" id="s2-total-e">$0.00</td>
               <td></td>
             </tr>
@@ -148,6 +151,8 @@
         </table>
       </div>
       <button class="add-row-btn" id="s2-add-row" type="button">+ Add fund</button>
+
+      <p class="check-msg warn" id="s2-both"></p>
 
       <p class="check-msg" id="s2-check"></p>
 
@@ -160,10 +165,6 @@
         <summary>Where this goes in TaxSlayer</summary>
         <p>Enter the full Box 8 amount federally as shown on the statement (Federal Section &rarr; Income &rarr; Interest and Dividends &rarr; Add Interest and Dividends &rarr; Interest Income, Form 1099-INT). Then under the state return, find &ldquo;Taxable State Interest&rdquo; and click &ldquo;Add Interest Items.&rdquo; Choose Montana as the state and enter the addition amount above as a new taxable state interest item.</p>
       </details>
-
-      <div class="panel-actions">
-        <button class="print-page-btn" type="button">Print this page</button>
-      </div>
     </section>
 
     <!-- STEP 3 -->
@@ -176,13 +177,14 @@
       <div class="table-wrap">
         <table class="fund-table" id="s3-table">
           <colgroup>
-            <col class="col-fund"><col class="col-money"><col class="col-money">
+            <col class="col-fund"><col class="col-page"><col class="col-money"><col class="col-money">
             <col class="col-money"><col class="col-pct"><col class="col-or"><col class="col-money">
             <col class="col-money"><col class="col-remove">
           </colgroup>
           <thead>
             <tr>
               <th class="col-fund">Fund name</th>
+              <th class="col-page" title="Page of the broker statement where this fund's figures are found">Stmt page</th>
               <th class="col-money" title="Total distribution ($)">Total ($)</th>
               <th class="col-money" title="Capital gain distributions to subtract ($)">Cap. gain ($)</th>
               <th class="col-money col-calc" title="Dividend distributions (calculated)">Div. distr. calc.</th>
@@ -197,10 +199,11 @@
           <tfoot>
             <tr>
               <td class="total-label">Total</td>
+              <td></td>
               <td class="col-money" id="s3-total-b">$0.00</td>
               <td class="col-money" id="s3-total-c">$0.00</td>
               <td class="col-money col-calc" id="s3-total-d">$0.00</td>
-              <td></td><td></td>
+              <td></td><td></td><td></td>
               <td class="col-money col-calc" id="s3-total-g">$0.00</td>
               <td></td>
             </tr>
@@ -208,6 +211,8 @@
         </table>
       </div>
       <button class="add-row-btn" id="s3-add-row" type="button">+ Add fund</button>
+
+      <p class="check-msg warn" id="s3-both"></p>
 
       <div class="result-block result-subtract">
         <span class="result-label">Montana subtraction amount</span>
@@ -218,10 +223,6 @@
         <summary>Where this goes in TaxSlayer</summary>
         <p>Federal Section &rarr; Income &rarr; Interest and Dividends &rarr; Add Interest and Dividends &rarr; Dividend Income, Form 1099-DIV. Enter the federal amount as shown on the statement, then scroll to &ldquo;Amount of Interest on U.S. Savings Bonds and Treasury Obligations you want subtracted from your state return&rdquo; and enter the amount above. Confirm the state selected is Montana.</p>
       </details>
-
-      <div class="panel-actions">
-        <button class="print-page-btn" type="button">Print this page</button>
-      </div>
     </section>
 
     <!-- STEP 4 -->
@@ -242,13 +243,14 @@
       <div class="table-wrap">
         <table class="fund-table" id="s4-table">
           <colgroup>
-            <col class="col-fund"><col class="col-money"><col class="col-money">
+            <col class="col-fund"><col class="col-page"><col class="col-money"><col class="col-money">
             <col class="col-money"><col class="col-pct"><col class="col-or"><col class="col-money">
             <col class="col-money"><col class="col-remove">
           </colgroup>
           <thead>
             <tr>
               <th class="col-fund">Fund name</th>
+              <th class="col-page" title="Page of the broker statement where this fund's figures are found">Stmt page</th>
               <th class="col-money" title="Total distribution ($)">Total ($)</th>
               <th class="col-money" title="Capital gain distributions to subtract ($)">Cap. gain ($)</th>
               <th class="col-money col-calc" title="Dividend distributions (calculated)">Div. distr. calc.</th>
@@ -263,10 +265,11 @@
           <tfoot>
             <tr>
               <td class="total-label">Total</td>
+              <td></td>
               <td class="col-money" id="s4-total-b">$0.00</td>
               <td class="col-money" id="s4-total-c">$0.00</td>
               <td class="col-money col-calc" id="s4-total-d">$0.00</td>
-              <td></td><td></td>
+              <td></td><td></td><td></td>
               <td class="col-money col-calc" id="s4-total-g">$0.00</td>
               <td></td>
             </tr>
@@ -274,6 +277,8 @@
         </table>
       </div>
       <button class="add-row-btn" id="s4-add-row" type="button">+ Add fund</button>
+
+      <p class="check-msg warn" id="s4-both"></p>
 
       <p class="check-msg" id="s4-check"></p>
 
@@ -286,17 +291,12 @@
         <summary>Where this goes in TaxSlayer</summary>
         <p>Enter the full Box 12 amount federally as shown on the statement (Federal Section &rarr; Income &rarr; Interest and Dividends &rarr; Add Interest and Dividends &rarr; Dividend Income, Form 1099-DIV). Then under the state return, find &ldquo;Taxable State Dividend&rdquo; and click &ldquo;Edit Dividend Items.&rdquo; Choose Montana as the state and enter the addition amount above as a new taxable state dividend item.</p>
       </details>
-
-      <div class="panel-actions">
-        <button class="print-page-btn" type="button">Print this page</button>
-      </div>
     </section>
 
     <!-- SUMMARY -->
     <section id="panel-summary" class="panel">
       <p class="kicker">Everything to enter, pulled from the steps you completed</p>
       <h2>Summary &mdash; TaxSlayer Entries</h2>
-      <p class="lede" id="summary-client">Client: &mdash;</p>
 
       <div class="table-wrap">
         <table class="summary-table">
@@ -329,10 +329,6 @@
       </div>
 
       <p class="note note-muted">A $0.00 line above means that step wasn't used (either the box was empty, or you skipped that step because it didn't apply to this client) &mdash; no entry is needed for it in TaxSlayer.</p>
-
-      <div class="panel-actions">
-        <button class="print-page-btn" type="button">Print this page</button>
-      </div>
     </section>
 
   </main>
@@ -342,6 +338,10 @@
   <button id="resetBtn" type="button" class="danger">New worksheet</button>
   <span class="save-status" id="saveStatus" role="status" aria-live="polite"></span>
 </footer>
+
+<!-- Print-only combined report. Filled in from the in-memory worksheet
+     data at the moment of printing; hidden on screen. -->
+<div id="print-report" aria-hidden="true"></div>
 
 <script src="app.js"></script>
 </body>
